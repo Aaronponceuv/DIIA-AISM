@@ -50,7 +50,8 @@ steps         = [float(step) for step in net_options['steps'].split(',')]
 scales        = [float(scale) for scale in net_options['scales'].split(',')]
 
 #Train parameters
-max_epochs    = max_batches*batch_size/nsamples+1
+max_epochs    = max_batches*batch_size//nsamples+1
+print('max epochs',max_epochs)
 use_cuda      = True
 seed          = int(time.time())
 eps           = 1e-5
@@ -58,7 +59,8 @@ save_interval = 10  # epoches
 dot_interval  = 70  # batches
 
 # Test parameters
-conf_thresh   = 0.25
+#conf_thresh   = 0.25
+conf_thresh   = 0.1
 nms_thresh    = 0.4
 iou_thresh    = 0.5
 
@@ -78,12 +80,12 @@ model.load_weights(weightfile)
 model.print_network()
 
 region_loss.seen  = model.seen
-processed_batches = model.seen/batch_size
+processed_batches = model.seen//batch_size
 
 init_width        = model.width
 init_height       = model.height
-init_epoch        = model.seen/nsamples 
-
+init_epoch        = model.seen//nsamples
+#init_epoch = 19
 kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
 test_loader = torch.utils.data.DataLoader(
     dataset.listDataset(testlist, shape=(init_width, init_height),
@@ -245,14 +247,14 @@ def test(epoch):
                     if iou > best_iou:
                         best_j = j
                         best_iou = iou
-                if best_iou > iou_thresh and boxes[best_j][6] == box_gt[6]:
+                if best_iou > iou_thresh and boxes[best_j][6] == int(box_gt[6]):
                     correct = correct+1
 
     precision = 1.0*correct/(proposals+eps)
     recall = 1.0*correct/(total+eps)
     fscore = 2.0*precision*recall/(precision+recall+eps)
     logging("precision: %f, recall: %f, fscore: %f" % (precision, recall, fscore))
-
+    print(precision,recall,fscore)
 evaluate = False
 if evaluate:
     logging('evaluating ...')

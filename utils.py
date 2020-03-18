@@ -137,7 +137,7 @@ def get_region_boxes(output, conf_thresh, num_classes, anchors, num_anchors, onl
 
     det_confs = torch.sigmoid(output[4])
 
-    cls_confs = torch.nn.Softmax()(Variable(output[5:5+num_classes].transpose(0,1))).data
+    cls_confs = torch.nn.Softmax(dim=1)(Variable(output[5:5+num_classes].transpose(0,1))).data
     cls_max_confs, cls_max_ids = torch.max(cls_confs, 1)
     cls_max_confs = cls_max_confs.view(-1)
     cls_max_ids = cls_max_ids.view(-1)
@@ -393,7 +393,7 @@ def file_lines(thefilepath):
         buffer = thefile.read(8192*1024)
         if not buffer:
             break
-        count += buffer.count('\n')
+        count += buffer.count('\n'.encode())
     thefile.close( )
     return count
 

@@ -162,8 +162,12 @@ def load_conv(buf, start, conv_model):
     num_b = conv_model.bias.numel()
     conv_model.bias.data.copy_(torch.from_numpy(buf[start:start+num_b]));   start = start + num_b
     #conv_model.weight.data.copy_(torch.from_numpy(buf[start:start+num_w])); start = start + num_w
+    print((conv_model.weight.shape[0],conv_model.weight.shape[1], conv_model.weight.shape[2],conv_model.weight.shape[3]))
+    print(torch.from_numpy(buf[start:start+num_w]))
+    print(buf[start:start+num_w])
     conv_model.weight.data.copy_(torch.reshape(torch.from_numpy(buf[start:start+num_w]),(conv_model.weight.shape[0],conv_model.weight.shape[1], conv_model.weight.shape[2],conv_model.weight.shape[3]))); start=start + num_w
     return start
+
 
 def save_conv(fp, conv_model):
     if conv_model.bias.is_cuda:
