@@ -1,0 +1,5 @@
+train  = /home/multimind/Escritorio/Etiquetado/BBox-Label-Tool/train.txt
+valid  = /home/multimind/Escritorio/Etiquetado/BBox-Label-Tool/val.txt
+names = data/camion.names
+backup = backup
+gpus  = 0
