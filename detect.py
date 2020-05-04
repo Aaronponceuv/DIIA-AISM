@@ -18,7 +18,7 @@ def detect(cfgfile, weightfile, imgfile):
     elif m.num_classes == 80:
         namesfile = 'data/coco.names'
     else:
-        namesfile = 'data/names'
+        namesfile = 'data/camion.names'
 
     use_cuda = 1
     if use_cuda:
@@ -31,6 +31,7 @@ def detect(cfgfile, weightfile, imgfile):
     for i in range(2):
         start = time.time()
         boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
+        print(boxes)
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
