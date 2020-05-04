@@ -4,9 +4,9 @@ from PIL import Image, ImageDraw
 from models.tiny_yolo import TinyYoloNet
 from utils import *
 from darknet import Darknet
+import os
 
-
-def detect(cfgfile, weightfile, imgfile):
+def detect(cfgfile, weightfile, path):
     m = Darknet(cfgfile)
 
     m.print_network()
@@ -23,22 +23,41 @@ def detect(cfgfile, weightfile, imgfile):
     use_cuda = 1
     if use_cuda:
         m.cuda()
+    
+    
+    isDirectory = os.path.isdir(path)
 
-    img = Image.open(imgfile).convert('RGB')
-    print(img.size)
-    sized = img.resize((m.width, m.height))
-    #print(sized.shape)
-    for i in range(2):
-        start = time.time()
-        boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
-        print(boxes)
-        finish = time.time()
-        if i == 1:
-            print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
+    if(isDirectory == True):
+        imagenes = os.listdir(path)
+        folder_predictions = './'+str(path)+'-predictions'
+        if(os.path.isdir(folder_predictions) == False):
+            os.mkdir(folder_predictions)
+        print(imagenes)
+        for z in range(len(imagenes)):
+            imgfile = path+'/'+str(imagenes[z])
+            img = Image.open(imgfile).convert('RGB')
+            sized = img.resize((m.width, m.height))
+            for i in range(2):
+                start = time.time()
+                boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
+                finish = time.time()
+                if i == 1:
+                    print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
 
-    class_names = load_class_names(namesfile)
-    plot_boxes(img, boxes, 'predictions.jpg', class_names)
+            class_names = load_class_names(namesfile)
+            plot_boxes(img, boxes, folder_predictions+'/'+str(imagenes[z]).split(".")[0]+'-predictions.jpg', class_names)
+    else:
+        img = Image.open(path).convert('RGB')
+        sized = img.resize((m.width, m.height))
+        for i in range(2):
+            start = time.time()
+            boxes = do_detect(m, sized, 0.5, 0.4, use_cuda)
+            finish = time.time()
+            if i == 1:
+                print('%s: Predicted in %f seconds.' % (path, (finish - start)))
 
+        class_names = load_class_names(namesfile)
+        plot_boxes(img, boxes, 'predictions.jpg', class_names)
 
 def detect_cv2(cfgfile, weightfile, imgfile):
     import cv2
@@ -109,10 +128,15 @@ def detect_skimage(cfgfile, weightfile, imgfile):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 4:
-        cfgfile = sys.argv[1]
-        weightfile = sys.argv[2]
-        imgfile = sys.argv[3]
+    if len(sys.argv) == 1:
+        #cfgfile = sys.argv[1]
+        cfgfile = "cfg/yolo-camion-darknet.cfg"
+        #weightfile = sys.argv[2]
+        weightfile = "backup/yolo-camion_14000.weights"
+        #imgfile = sys.argv[3]
+       # imgfile = "img/2-2345.jpg"
+        imgfile = "img"
+        print(imgfile)
         detect(cfgfile, weightfile, imgfile)
         #detect_cv2(cfgfile, weightfile, imgfile)
         #detect_skimage(cfgfile, weightfile, imgfile)
