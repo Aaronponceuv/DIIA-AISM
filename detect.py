@@ -167,7 +167,6 @@ if __name__ == '__main__':
                     detect(cfgfile, weightfile, path, 2, carpeta_save)
         
         #convert_img_video()
-        #ordenerar()
         
     else:
         print('Usage: ')
