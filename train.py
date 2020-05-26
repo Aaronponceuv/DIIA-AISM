@@ -42,8 +42,10 @@ ngpus         = len(gpus.split(','))
 num_workers   = int(data_options['num_workers'])
 
 batch_size    = int(net_options['batch'])
+print(batch_size)
 max_batches   = int(net_options['max_batches'])
 learning_rate = float(net_options['learning_rate'])
+print(learning_rate)
 momentum      = float(net_options['momentum'])
 decay         = float(net_options['decay'])
 steps         = [float(step) for step in net_options['steps'].split(',')]
@@ -87,6 +89,7 @@ init_height       = model.height
 init_epoch        = model.seen//nsamples
 #init_epoch = 19
 kwargs = {'num_workers': num_workers, 'pin_memory': True} if use_cuda else {}
+print(kwargs)
 test_loader = torch.utils.data.DataLoader(
     dataset.listDataset(testlist, shape=(init_width, init_height),
                    shuffle=False,
@@ -231,9 +234,9 @@ def test(epoch):
             boxes = nms(boxes, nms_thresh)
             truths = target[i].view(-1, 5)
             num_gts = truths_length(truths)
-     
+
             total = total + num_gts
-    
+
             for i in range(len(boxes)):
                 if boxes[i][4] > conf_thresh:
                     proposals = proposals+1
