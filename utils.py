@@ -9,6 +9,7 @@ from torch.autograd import Variable
 
 import struct # get_image_size
 import imghdr # get_image_size
+import PIL
 
 def sigmoid(x):
     return 1.0/(math.exp(-x)+1.)
@@ -234,7 +235,7 @@ def plot_boxes_cv2(img, boxes, savename=None, class_names=None, color=None):
         cv2.imwrite(savename, img)
     return img
 
-def plot_boxes(img, boxes, savename=None, class_names=None):
+def plot_boxes(img, boxes, savename=None, class_names=None,frameCount=None):
     colors = torch.FloatTensor([[1,0,1],[0,0,1],[0,1,1],[0,1,0],[1,1,0],[1,0,0]]);
     def get_color(c, x, max_val):
         ratio = float(x)/max_val * 5
@@ -247,6 +248,7 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
     width = img.width
     height = img.height
     draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("./Verdana.ttf", 10)
     for i in range(len(boxes)):
         box = boxes[i]
         x1 = (box[0] - box[2]/2.0) * width
@@ -254,19 +256,23 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
         x2 = (box[0] + box[2]/2.0) * width
         y2 = (box[1] + box[3]/2.0) * height
 
+       # print('box convert\n x1: ',x1,'x2: ',x2,'y1: ',y1,'y2: ',y2)
         rgb = (255, 0, 0)
         if len(box) >= 7 and class_names:
             cls_conf = box[5]
             cls_id = box[6]
-            print('%s: %f' % (class_names[cls_id], cls_conf))
+        #    print('%s: %f' % (class_names[cls_id], cls_conf))
             classes = len(class_names)
             offset = cls_id * 123457 % classes
             red   = get_color(2, offset, classes)
             green = get_color(1, offset, classes)
             blue  = get_color(0, offset, classes)
             rgb = (red, green, blue)
-            draw.text((x1, y1), class_names[cls_id], fill=rgb)
+            
+            draw.text((x1, y1), class_names[cls_id], font=font,fill=rgb, align ="right")
         draw.rectangle([x1, y1, x2, y2], outline = rgb)
+    #draw.text((380, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 640 x 360
+    draw.text((250, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 426 x 240 
     if savename:
         print("save plot results to %s" % savename)
         img.save(savename)
