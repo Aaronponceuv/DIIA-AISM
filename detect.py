@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 import glob
 
-from Utilhora import *
+#from Utilhora import *
 import pandas as pd
 def ordenerar(path):
     imgs = os.listdir(path)
