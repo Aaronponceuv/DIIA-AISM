@@ -116,7 +116,8 @@ def fill_truth_detection(labpath, w, h, flip, dx, dy, sx, sy):
     return label
 
 def load_data_detection(imgpath, shape, jitter, hue, saturation, exposure):
-    labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+# para voc dataset#    labpath = imgpath.replace('images', 'labels').replace('JPEGImages', 'labels').replace('.jpg', '.txt').replace('.png','.txt')
+    labpath = imgpath.replace('002', 'labels').replace('.jpg', '.txt').replace('.png','.txt').replace('.jpeg','.txt') #para camion dataset
 
     ## data augmentation
     img = Image.open(imgpath).convert('RGB')
