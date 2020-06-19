@@ -271,8 +271,8 @@ def plot_boxes(img, boxes, savename=None, class_names=None,frameCount=None):
             
             draw.text((x1, y1), class_names[cls_id], font=font,fill=rgb, align ="right")
         draw.rectangle([x1, y1, x2, y2], outline = rgb)
-    #draw.text((380, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 640 x 360
-    draw.text((250, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 426 x 240 
+    draw.text((380, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 640 x 360
+    #draw.text((250, 3), "Frame: "+str(frameCount),font=font,fill="green", align ="right") # para 426 x 240 
     if savename:
         print("save plot results to %s" % savename)
         img.save(savename)
