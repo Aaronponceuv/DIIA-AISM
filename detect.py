@@ -15,6 +15,10 @@ import glob
 
 #from Utilhora import *
 import pandas as pd
+
+import time
+from pathlib import Path
+import shutil
 def ordenerar(path):
     imgs = os.listdir(path)
     name_video = []
@@ -34,7 +38,7 @@ def convert_img_video(carpeta_save,fps):
         height, width, layer = img.shape
         size = (width,height)
         img_array.append(img)
-    out = cv2.VideoWriter(path.split("/")[2]+'-prediccion.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+    out = cv2.VideoWriter("./video-box/"+path.split("/")[2]+'-prediccion.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
     
     for i in range(len(img_array)):
         out.write(img_array[i])
@@ -63,7 +67,7 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
     tren = []
     hora = []
     frames = []
-    data = pd.DataFrame(columns=('frame','Deteccion'))
+    data = pd.DataFrame(columns=('frame','Deteccion','Fecha-Hora'))
     tiempo_de_prediccion = []
 
     while(1):
@@ -84,15 +88,15 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
                 print('%s: Predicted in %f seconds.' % (path, (finish - start)))
 
         class_names = load_class_names(namesfile)
-        plot_boxes(frame.resize((426,240)), boxes,carpeta_save+"/"+str(frameCount)+'.jpg', class_names, frameCount)
+        plot_boxes(frame.resize((640,360)), boxes,carpeta_save+"/"+str(frameCount)+'.jpg', class_names, frameCount)
         
 
         if(len(boxes) == 1):
             tren.append(1)
-            data.loc[frameCount] = [frameCount,"SI"] 
+            data.loc[frameCount] = [frameCount,"SI",str(time.ctime())] 
         if(len(boxes) == 0):
             tren.append(0)
-            data.loc[frameCount] = [frameCount,"NO"] 
+            data.loc[frameCount] = [frameCount,"NO",str(time.ctime())] 
         frameCount +=1
         
         """
@@ -110,7 +114,9 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
         """    
 
             #del tren[:], hora[:], frames[:]
-    data.to_excel('horas.xlsx', sheet_name='detectados' , index=False)
+    print(path.split("/")[7].split(".")[0])
+    name_xlsx = path.split("/")[7].split(".")[0]
+    data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
     print(fps)
     print('Fotogramas Procesados',frameCount)
     return fps
@@ -181,6 +187,51 @@ def detect(cfgfile, weightfile, path, formato,carpeta_save=None):
     print('T',time.time()-inicio)
 
 if __name__ == '__main__':
+    cfgfile = "cfg/yolo-camion-darknet.cfg"
+    weightfile = "backup/yolo-camion_14000.weights"
+    carpeta_videos = "./video-predict"
+
+    path = "./video-cam"
+
+    estado = []
+
+    def flujo(ruta):
+        while(1):
+            inicio = time.time()
+            t_end = inicio + 10 * 1
+            estado.append(Path(os.path.abspath(path+"/"+ruta)).stat().st_size)
+            while(time.time() < t_end):
+                print(Path(os.path.abspath(path+"/"+ruta)).stat().st_size)
+            estado.append(Path(os.path.abspath(path+"/"+ruta)).stat().st_size)
+            print(str(estado[len(estado)-2])+"  "+str(estado[len(estado)-1]))
+            if(estado[len(estado)-2] == estado[len(estado)-1] ):
+                    print("no hubo modificacion")
+                    break
+        return True
+
+    #print(os.listdir(path)[0])
+    #flujo(os.listdir(path)[0])
+
+    while(1):
+        if(len(os.listdir(path))>0):
+            fl = flujo(os.listdir(path)[0])
+            if fl:
+                print("llamar detector")
+                imgfile = os.path.abspath(path+"/"+os.listdir(path)[0])
+                print(imgfile.split("/")[7].split(".")[0])
+                carpeta_save = carpeta_videos+"/"+str(imgfile).split(".")[0].split("/")[7]
+                if(os.path.isdir(carpeta_videos) == False):
+                    os.mkdir(carpeta_videos)
+                if(os.path.isdir(carpeta_save) == False):
+                    os.mkdir(carpeta_save)
+                detect(cfgfile, weightfile, imgfile, 2,carpeta_save)
+                shutil.move(imgfile,os.path.abspath("videos-ok"+"/"+os.listdir(path)[0]))
+                #break
+
+
+
+
+    """    
     if len(sys.argv) == 2:
         star = time.time()
         #cfgfile = sys.argv[1]
@@ -196,6 +247,7 @@ if __name__ == '__main__':
         #imgfile = "./img-desarrollo" # directorio de imagenes
 
         carpeta_videos = "./video-predict"
+        
         
         if(os.path.isfile(imgfile)): # Una imagen
             "Una Imagen"
@@ -233,3 +285,4 @@ if __name__ == '__main__':
         print('Usage: ')
         print('  python detect.py cfgfile weightfile imgfile')
         # detect('cfg/tiny-yolo-voc.cfg', 'tiny-yolo-voc.weights', 'data/person.jpg', version=1)
+    """
