@@ -82,7 +82,7 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
 
         for i in range(2):
             start = time.time()
-            boxes = do_detect(model, np.array(sized), 0.5, 0.4, use_cuda)
+            boxes = do_detect(model, np.array(sized), 0.8, 0.4, use_cuda)
             finish = time.time()
             if i == 1:
                 print('%s: Predicted in %f seconds.' % (path, (finish - start)))
@@ -106,7 +106,6 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
           #  print("Deteccion de camion, frame ",frameCount,' hora detect',hora_detect[0:6],'hora grab',sumar_hora(hora_detect,hora_inicio) )
             hora.append(sumar_hora(hora_inicio,hora_detect[0:6]))
             frames.append(frameCount)
-
         if (sum(tren[len(tren)-40: len(tren)]) == 0 and sum(tren[len(tren)-80: len(tren)-40]) >= 1 ):
         #    print("se fue el camion",frameCount)
             hora_detect2 = milisegundos_a_hora(cap.get(cv2.CAP_PROP_POS_MSEC))
@@ -240,12 +239,10 @@ if __name__ == '__main__':
         print(sys.argv[1])
         cfgfile = "cfg/yolo-camion-darknet.cfg"
         weightfile = "backup/yolo-camion_14000.weights"
-
         #imgfile = "./video-desarrollo/ch06_20200106101038.mp4" # Directorio de videos
         imgfile = sys.argv[1]
         #imgfile = "./946.jpg" # una imagen
         #imgfile = "./img-desarrollo" # directorio de imagenes
-
         carpeta_videos = "./video-predict"
         
         
@@ -266,7 +263,6 @@ if __name__ == '__main__':
             "Directorio de Imagenes"
             if(os.listdir(imgfile)[0].split(".")[1] == "jpg"):
                 detect(cfgfile, weightfile, imgfile, 1)
-
             "Directorio de Videos"
             if(os.listdir(imgfile)[0].split(".")[1] == "mp4"):
                 videos = os.listdir(imgfile)
