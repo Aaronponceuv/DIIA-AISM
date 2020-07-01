@@ -82,7 +82,7 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda):
 
         for i in range(2):
             start = time.time()
-            boxes = do_detect(model, np.array(sized), 0.8, 0.4, use_cuda)
+            boxes = do_detect(model, np.array(sized), 0.5, 0.4, use_cuda)
             finish = time.time()
             if i == 1:
                 print('%s: Predicted in %f seconds.' % (path, (finish - start)))
@@ -185,15 +185,6 @@ def detect(cfgfile, weightfile, path, formato,carpeta_save=None):
         convert_img_video(carpeta_save,fps)
     print('T',time.time()-inicio)
 
-if __name__ == '__main__':
-    cfgfile = "cfg/yolo-camion-darknet.cfg"
-    weightfile = "backup/yolo-camion_14000.weights"
-    carpeta_videos = "./video-predict"
-
-    path = "./video-cam"
-
-    estado = []
-
     def flujo(ruta):
         while(1):
             inicio = time.time()
@@ -207,6 +198,17 @@ if __name__ == '__main__':
                     print("no hubo modificacion")
                     break
         return True
+
+if __name__ == '__main__':
+    cfgfile = "cfg/yolo-camion-darknet.cfg"
+    weightfile = "backup/yolo-camion_14000.weights"
+    carpeta_videos = "./video-predict"
+
+    path = "./video-cam"
+
+    estado = []
+
+
 
     #print(os.listdir(path)[0])
     #flujo(os.listdir(path)[0])
