@@ -16,7 +16,7 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     with open(valid_images) as fp:
         tmp_files = fp.readlines()
         valid_files = [item.rstrip() for item in tmp_files]
-    
+
     m = Darknet(cfgfile)
     m.print_network()
     m.load_weights(weightfile)
@@ -46,7 +46,9 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     
     conf_thresh = 0.005
     nms_thresh = 0.45
+    count = 0
     for batch_idx, (data, target) in enumerate(valid_loader):
+        
         data = data.cuda()
         data = Variable(data, volatile = True)
         output = m(data).data
@@ -58,22 +60,39 @@ def valid(datacfg, cfgfile, weightfile, outfile):
             print(valid_files[lineId])
             boxes = batch_boxes[i]
             boxes = nms(boxes, nms_thresh)
+            aux = []
             for box in boxes:
+                """
+                Descomentar en caso de re-escalar cordenadas
                 x1 = (box[0] - box[2]/2.0) * width
                 y1 = (box[1] - box[3]/2.0) * height
                 x2 = (box[0] + box[2]/2.0) * width
                 y2 = (box[1] + box[3]/2.0) * height
-
+                """
+                x1 = (box[0]) 
+                y1 = (box[1]) 
+                x2 = (box[3]) 
+                y2 = (box[3]) 
                 det_conf = box[4]
                 for j in range((len(box)-5)//2):
+                    count +=1
                     cls_conf = box[5+2*j]
                     cls_id = box[6+2*j]
                     prob =det_conf * cls_conf
-                    fps[cls_id].write('%s %f %f %f %f %f\n' % (fileId, prob, x1, y1, x2, y2))
-
+                    aux.append([prob.item(), x1.item(), y1.item(), x2.item(), y2.item()])
+                    """
+                    Para almacenar todos los boxes es necesario descomentar la linea de abajo y comentar linea 93
+                    """
+                    #fps[cls_id].write('%s %f %f %f %f %f\n' % (fileId, prob, x1, y1, x2, y2))
+                if(len(boxes) == len(aux)):
+                    """
+                    De todos los boxes arrojados se almacena solo el box con mayor probabilidad
+                    almancenando la prediccion para una posterior evaluacion de mAP
+                    """
+                    i,j = np.where(np.array(aux) == max(np.array(aux)[:,0]))
+                    fps[cls_id].write('%s %f %f %f %f %f\n' % (fileId, np.float64(np.array(aux)[i,j]), np.float64(np.array(aux)[i,1]), np.float64(np.array(aux)[i,2]), np.float64(np.array(aux)[i,3]), np.float64(np.array(aux)[i,4])))
     for i in range(m.num_classes):
         fps[i].close()
-
 if __name__ == '__main__':
     import sys
     if len(sys.argv) == 4:
