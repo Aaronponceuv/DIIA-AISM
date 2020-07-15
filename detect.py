@@ -95,13 +95,17 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None):
         frameCount +=1
     if(mode == "dvideo"):
         print("Modo dvideo")   
-        #print(path.split(".")[0].split("/")[1])
+        print(path.split(".")[0].split("/")[1])
+        name_xlsx = path.split(".")[0].split("/")[1]
+        data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
+    if(mode == "carpeta/video"):
+        print(path.split(".")[0].split("/")[1])
         name_xlsx = path.split(".")[0].split("/")[1]
         data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
     else:
         print(path.split(".")[0])
         name_xlsx = path.split(".")[0]
-        data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
+       # data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
 
     print(fps)
     print('Fotogramas Procesados',frameCount)
@@ -194,13 +198,7 @@ if __name__ == '__main__':
         imgfile = sys.argv[4]
         carpeta_videos = "./video-predict"
 
-        if(option == "video"):
-            print("option video")
-            carpeta_save = carpeta_videos+"/"+str(imgfile).split(".")[0]
-            print(carpeta_save)
-            if(os.path.isdir(carpeta_save) == False):
-                os.mkdir(carpeta_save)
-            detect(cfgfile, weightfile, imgfile, 2,carpeta_save)
+
         if(option == "img"):
             print("option imagen")
             detect(cfgfile, weightfile, imgfile, 0)
@@ -220,3 +218,17 @@ if __name__ == '__main__':
                 if(os.path.isdir(carpeta_videos+"/"+str(carpeta_vd)) == False):
                     os.mkdir(carpeta_videos+"/"+str(carpeta_vd))
                 detect(cfgfile, weightfile, path, 2, carpeta_save,"dvideo")
+        if(option == "video"):
+            print("option video")
+            if(len(str(imgfile).split("/")) > 1):
+                print("video en un dir")
+                print(str(imgfile).split("/")[1].split(".")[0])
+                carpeta_save = carpeta_videos+"/"+str(imgfile).split("/")[1].split(".")[0]
+                print(carpeta_save)
+                detect(cfgfile, weightfile, imgfile, 2,carpeta_save,"carpeta/video")
+            else:
+                carpeta_save = carpeta_videos+"/"+str(imgfile).split(".")[0]
+                print(carpeta_save)
+                if(os.path.isdir(carpeta_save) == False):
+                    os.mkdir(carpeta_save)
+                detect(cfgfile, weightfile, imgfile, 2,carpeta_save)

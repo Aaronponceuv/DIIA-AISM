@@ -101,7 +101,7 @@ def nms(boxes, nms_thresh):
             for j in range(i+1, len(boxes)):
                 box_j = boxes[sortIds[j]]
                 if bbox_iou(box_i, box_j, x1y1x2y2=False) > nms_thresh:
-                    #print(box_i, box_j, bbox_iou(box_i, box_j, x1y1x2y2=False))
+                    #print(bbox_iou(box_i, box_j))
                     box_j[4] = 0
     return out_boxes
 
