@@ -5,6 +5,7 @@ from torch.autograd import Variable
 from torchvision import datasets, transforms
 from utils import *
 import os
+import configparser
 
 def valid(datacfg, cfgfile, weightfile, outfile):
     options = read_data_cfg(datacfg)
@@ -46,6 +47,7 @@ def valid(datacfg, cfgfile, weightfile, outfile):
     
     conf_thresh = 0.005
     nms_thresh = 0.45
+    
     count = 0
     for batch_idx, (data, target) in enumerate(valid_loader):
         
@@ -95,10 +97,13 @@ def valid(datacfg, cfgfile, weightfile, outfile):
         fps[i].close()
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) == 4:
-        datacfg = sys.argv[1]
-        cfgfile = sys.argv[2]
-        weightfile = sys.argv[3]
+    if len(sys.argv) == 1:
+        config = configparser.ConfigParser()
+        config.read('./config.ini', encoding="utf-8")
+        datacfg  = config['Train_Parameters']['cfgdata']
+        cfgfile = config['Train_Parameters']['cfgfile']
+        weightfile = config['Detect_Parameters']['weightfile']
+
         outfile = 'comp4_det_test_'
         valid(datacfg, cfgfile, weightfile, outfile)
     else:
