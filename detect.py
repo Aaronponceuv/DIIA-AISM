@@ -19,6 +19,9 @@ import pandas as pd
 import time
 from pathlib import Path
 import shutil
+
+import configparser
+
 def ordenerar(path):
     imgs = os.listdir(path)
     name_video = []
@@ -28,7 +31,7 @@ def ordenerar(path):
     name_video = sorted(name_video)
     return name_video
  
-def convert_img_video(carpeta_save,fps):
+def convert_img_video(carpeta_save,fps,carpeta_box):
     img_array = []
     path = carpeta_save
     imgs = ordenerar(path)
@@ -38,7 +41,7 @@ def convert_img_video(carpeta_save,fps):
         height, width, layer = img.shape
         size = (width,height)
         img_array.append(img)
-    out = cv2.VideoWriter("./video-box/"+path.split("/")[2]+'-prediccion.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+    out = cv2.VideoWriter(carpeta_box+"/"+path.split("/")[2]+'-prediccion.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
     
     for i in range(len(img_array)):
         out.write(img_array[i])
@@ -52,7 +55,11 @@ def formato_hora(hora):
     seg = hora[4:6]
     return str(hrs+':'+min+':'+seg)
 
-def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None):
+def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None,registro_frame=None):
+    nms_thresh = float(config['Detect_Parameters']['nms_thresh'])
+    conf_thresh = float(config['Detect_Parameters']['conf_thresh'])
+    width_frame = int(config['Size_Frame']['width'])
+    height_frame = int(config['Size_Frame']['height'])
     cap = cv2.VideoCapture(path)
     fps    = cap.get(cv2.CAP_PROP_FPS)
     print('fps',fps)
@@ -77,13 +84,14 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None):
 
         for i in range(2):
             start = time.time()
-            boxes = do_detect(model, np.array(sized), 0.5, 0.4, use_cuda)
+            boxes = do_detect(model, np.array(sized), conf_thresh, nms_thresh, use_cuda)
             finish = time.time()
             if i == 1:
                 print('%s: Predicted in %f seconds.' % (path, (finish - start)))
 
         class_names = load_class_names(namesfile)
-        plot_boxes(frame.resize((640,360)), boxes,carpeta_save+"/"+str(frameCount)+'.jpg', class_names, frameCount)
+        print(carpeta_save)
+        plot_boxes(frame.resize((width_frame,height_frame)), boxes,carpeta_save+"/"+str(frameCount)+'.jpg', class_names, frameCount)
         
 
         if(len(boxes) == 1):
@@ -97,11 +105,11 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None):
         print("Modo dvideo")   
         print(path.split(".")[0].split("/")[1])
         name_xlsx = path.split(".")[0].split("/")[1]
-        data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
+        data.to_excel(registro_frame+"/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
     if(mode == "carpeta/video"):
         print(path.split(".")[0].split("/")[1])
         name_xlsx = path.split(".")[0].split("/")[1]
-        data.to_excel("./registro_frame/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
+        data.to_excel(registro_frame+"/"+str(name_xlsx)+'.xlsx', sheet_name='detectados' , index=False)
     else:
         print(path.split(".")[0])
         name_xlsx = path.split(".")[0]
@@ -112,6 +120,8 @@ def input_video(model,path,namesfile,carpeta_save,use_cuda,mode=None):
     return fps 
 
 def input_dir_image(model, path, namesfile,use_cuda):
+    nms_thresh = float(config['Detect_Parameters']['nms_thresh'])
+    conf_thresh = float(config['Detect_Parameters']['conf_thresh'])
     imagenes = os.listdir(path)
     tiempo_de_prediccion = []
     folder_predictions = str(path)+'-predictions'
@@ -123,7 +133,7 @@ def input_dir_image(model, path, namesfile,use_cuda):
         sized = img.resize((model.width, model.height))
         for i in range(2):
             start = time.time()
-            boxes = do_detect(model, sized, 0.5, 0.4, use_cuda)
+            boxes = do_detect(model, sized, conf_thresh, nms_thresh, use_cuda)
             finish = time.time()
             if i == 1:
                 print('%s: Predicted in %f seconds.' % (imgfile, (finish - start)))
@@ -134,11 +144,13 @@ def input_dir_image(model, path, namesfile,use_cuda):
     print('Tiempo de Procesamiento:',sum(tiempo_de_prediccion),"seg")
 
 def input_image(model,path,namesfile,use_cuda):
+    nms_thresh = float(config['Detect_Parameters']['nms_thresh'])
+    conf_thresh = float(config['Detect_Parameters']['conf_thresh'])
     img = Image.open(path).convert('RGB')
     sized = img.resize((model.width, model.height))
     for i in range(2):
         start = time.time()
-        boxes = do_detect(model, sized, 0.5, 0.4, use_cuda)
+        boxes = do_detect(model, sized, conf_thresh, nms_thresh, use_cuda)
         finish = time.time()
         if i == 1:
             print('%s: Predicted in %f seconds.' % (path, (finish - start)))
@@ -161,6 +173,10 @@ def detect(cfgfile, weightfile, path, formato,carpeta_save=None,mode=None):
         namesfile = 'data/coco.names'
     else:
         namesfile = 'data/camion.names'
+        namesfile = config['Detect_Parameters']['namesfile']
+
+    registro_frame = config['Detect_Parameters']['registro_frame']
+    carpeta_box = config['Detect_Parameters']['registro_video']
 
     use_cuda = 1
     if use_cuda:
@@ -172,8 +188,8 @@ def detect(cfgfile, weightfile, path, formato,carpeta_save=None,mode=None):
     if(formato == 1):
         input_dir_image(m,path,namesfile,use_cuda)
     if(formato == 2):
-        fps = input_video(m,path,namesfile,carpeta_save,use_cuda,mode)
-        convert_img_video(carpeta_save,fps)
+        fps = input_video(m,path,namesfile,carpeta_save,use_cuda,mode,registro_frame)
+        convert_img_video(carpeta_save,fps,carpeta_box)
     print('T',time.time()-inicio)
 
 def flujo(ruta):
@@ -191,12 +207,18 @@ def flujo(ruta):
     return True
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5:
-        cfgfile = sys.argv[1]
-        weightfile = sys.argv[2]
-        option = sys.argv[3]
-        imgfile = sys.argv[4]
-        carpeta_videos = "./video-predict"
+    if len(sys.argv) == 1:
+        config = configparser.ConfigParser()
+        config.read('./config.ini', encoding="utf-8")
+ 
+        cfgfile = config['Detect_Parameters']['cfgfile']
+        weightfile = config['Detect_Parameters']['weightfile']
+        option = config['Option_predicts']['option']
+        imgfile = config['Option_predicts']['imgfile']
+        carpeta_videos = config['Detect_Parameters']['folder_save']
+
+        if(os.path.isdir(carpeta_videos) == False):
+                os.mkdir(carpeta_videos)
 
 
         if(option == "img"):
@@ -224,6 +246,8 @@ if __name__ == '__main__':
                 print("video en un dir")
                 print(str(imgfile).split("/")[1].split(".")[0])
                 carpeta_save = carpeta_videos+"/"+str(imgfile).split("/")[1].split(".")[0]
+                if(os.path.isdir(carpeta_save) == False):
+                    os.mkdir(carpeta_save)
                 print(carpeta_save)
                 detect(cfgfile, weightfile, imgfile, 2,carpeta_save,"carpeta/video")
             else:
