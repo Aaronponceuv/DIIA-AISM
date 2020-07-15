@@ -1,9 +1,9 @@
 from __future__ import print_function
 import sys
-if len(sys.argv) != 4:
-    print('Usage:')
-    print('python train.py datacfg cfgfile weightfile')
-    exit()
+#if len(sys.argv) != 4:
+#    print('Usage:')
+#    print('python train.py datacfg cfgfile weightfile')
+#    exit()
 
 import time
 import torch
@@ -24,11 +24,13 @@ from region_loss import RegionLoss
 from darknet import Darknet
 from models.tiny_yolo import TinyYoloNet
 
-
+import configparser
+config = configparser.ConfigParser()
+config.read('./config.ini', encoding="utf-8")
 # Training settings
-datacfg       = sys.argv[1]
-cfgfile       = sys.argv[2]
-weightfile    = sys.argv[3]
+datacfg       = config['Train_Parameters']['cfgdata']
+cfgfile       = config['Train_Parameters']['cfgfile']
+weightfile    = config['Train_Parameters']['weights_conv']
 
 data_options  = read_data_cfg(datacfg)
 net_options   = parse_cfg(cfgfile)[0]
@@ -62,10 +64,12 @@ dot_interval  = 70  # batches
 
 # Test parameters
 #conf_thresh   = 0.25
-conf_thresh   = 0.1
-nms_thresh    = 0.4
-iou_thresh    = 0.5
-
+#conf_thresh   = 0.1
+#nms_thresh    = 0.4
+#iou_thresh    = 0.5
+conf_thresh   = float(config['Test_Parameters']['conf_thresh'])
+nms_thresh   = float(config['Test_Parameters']['nms_thresh'])
+iou_thresh    = float(config['Test_Parameters']['iou_thresh'])
 if not os.path.exists(backupdir):
     os.mkdir(backupdir)
     
