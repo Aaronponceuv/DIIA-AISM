@@ -4,6 +4,10 @@ import torch.nn.functional as F
 import numpy as np
 from region_loss import RegionLoss
 from cfg import *
+import configparser
+config = configparser.ConfigParser()
+config.read('./config.ini', encoding="utf-8")
+
 #from layers.batchnorm.bn import BN2d
 
 class MaxPoolStride1(nn.Module):
@@ -243,8 +247,9 @@ class Darknet(nn.Module):
         return models
 
     def load_weights(self, weightfile):
+        count_header = int(config['Load_Weight']['count'])
         fp = open(weightfile, 'rb')
-        header = np.fromfile(fp, count=5, dtype=np.int32) # Detectar count=5
+        header = np.fromfile(fp, count=count_header, dtype=np.int32) # Detectar count=5
         self.header = torch.from_numpy(header)
         self.seen = self.header[3]
         buf = np.fromfile(fp, dtype = np.float32)
