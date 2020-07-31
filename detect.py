@@ -178,7 +178,7 @@ def detect(cfgfile, weightfile, path, formato,carpeta_save=None,mode=None):
     registro_frame = config['Detect_Parameters']['registro_frame']
     carpeta_box = config['Detect_Parameters']['registro_video']
 
-    use_cuda = 1
+    use_cuda = 0
     if use_cuda:
         m.cuda()
 

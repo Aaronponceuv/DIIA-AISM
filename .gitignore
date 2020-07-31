@@ -7,4 +7,5 @@
 *.so
 *.mp4
 *.avi
+*.weights
 backup/
