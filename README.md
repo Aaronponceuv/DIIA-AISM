@@ -13,7 +13,7 @@ Ejemplo de configuración para detectar **un** video en la ruta ./video-cam/cami
 ```
 [Option_predicts]
 option = video
-imgfile = ./video-cam/camion-minuto.mp4
+imgfile = ./1.people.mp4
 ```
 Para predecir escribir en consola
 ```
